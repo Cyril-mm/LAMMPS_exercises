@@ -1,0 +1,1 @@
+## OVGU exercise examples provided by Dr.Sebastian Hütter @martok 
