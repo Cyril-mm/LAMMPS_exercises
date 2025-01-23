@@ -1,0 +1,53 @@
+# LAMMPS for 25/75 Al-Fe A2
+
+# INITIAL
+clear
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+
+# VARIABLES
+variable a equal 5
+
+# BOX
+lattice fcc ${a}
+region whole block 0 ${a} 0 ${a} 0 ${a}
+create_box 2 whole
+
+# ATOMS
+#lattice fcc ${a}
+create_atoms 1 region whole ratio 0.33 74837
+#create_atoms 2 region whole ratio 0.75 54637
+lattice fcc ${a} origin 0.5 0.5 0.5
+#create_atoms 1 region whole ratio 0.25 74837
+create_atoms 2 region whole 
+
+# POTENTIAL
+pair_style eam/fs
+pair_coeff * * AlFe_mm.eam.fs Al Fe
+
+# Conditions
+minimize 1.0e-4 1.0e-6 100 1000
+velocity all create 300 55555 mom yes rot yes dist gaussian
+fix 1 all npt temp 300 1500 100 iso 1.0 1.0 1.0
+#fix 1 all nvt temp 300 300 0.1
+
+# Lattice constant
+thermo_style custom step temp press lx
+thermo 100
+#print "Initial lattice constant ${a}"
+
+# DUMP
+dump 1 all custom 100 feal_75_25_a2.dump id type x y z
+
+# RUN
+run 10000
+
+#print "Eq. lattice constant ${lx}"
+
+# RDF
+#compute feal_rdf all rdf 200 1 1 1 2 2 2
+#fix 2 all ave/time 100 10 1000 c_feal_rdf file feal_75_25_a2.out mode vector
+
+print "All Done!"

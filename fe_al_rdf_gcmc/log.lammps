@@ -1,0 +1,160 @@
+LAMMPS (29 Aug 2024 - Update 1)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# LAMMPS for 50/50 Fe-Al B2
+
+# INITIAL
+clear
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+
+# VARIABLES
+variable a equal 5
+
+# BOX
+lattice fcc ${a}
+lattice fcc 5
+Lattice spacing in x,y,z = 5 5 5
+region whole block 0 ${a} 0 ${a} 0 ${a}
+region whole block 0 5 0 ${a} 0 ${a}
+region whole block 0 5 0 5 0 ${a}
+region whole block 0 5 0 5 0 5
+create_box 2 whole
+Created orthogonal box = (0 0 0) to (25 25 25)
+  1 by 2 by 2 MPI processor grid
+
+# ATOMS
+lattice fcc ${a}
+lattice fcc 5
+Lattice spacing in x,y,z = 5 5 5
+create_atoms 1 region whole
+Created 500 atoms
+  using lattice units in orthogonal box = (0 0 0) to (25 25 25)
+  create_atoms CPU = 0.000 seconds
+lattice fcc ${a} origin 0.5 0.5 0.5
+lattice fcc 5 origin 0.5 0.5 0.5
+Lattice spacing in x,y,z = 5 5 5
+create_atoms 2 region whole
+Created 500 atoms
+  using lattice units in orthogonal box = (0 0 0) to (25 25 25)
+  create_atoms CPU = 0.000 seconds
+
+# POTENTIAL
+pair_style eam/fs
+pair_coeff * * AlFe_mm.eam.fs Al Fe
+Reading eam/fs potential file AlFe_mm.eam.fs with DATE: 2007-06-11
+
+# Conditions
+fix 1 all box/relax iso 1.5 vmax 1.0e-3
+minimize 1.0e-4 1.0e-6 100 1000
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.5
+  ghost atom cutoff = 8.5
+  binsize = 4.25, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/fs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Energy due to 1 extra global DOFs will be included in minimizer energies
+ (src/min.cpp:219)
+Per MPI rank memory allocation (min/avg/max) = 4.55 | 4.55 | 4.55 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         0   0             -3316.2701      0             -3316.2701     -42066.968      15625        
+        13   0             -3326.0591      0             -3326.0591     -9981.3786      15023.513    
+Loop time of 0.00831121 on 4 procs for 13 steps with 1000 atoms
+
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+      -3316.2701169253  -3325.73983692318  -3326.05966199172
+  Force two-norm initial, final = 1230.8004 284.52539
+  Force max component initial, final = 1230.8004 284.52539
+  Final line search alpha, max atom move = 2.815475e-06 0.0008010741
+  Iterations, force evaluations = 13 13
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0072165  | 0.0072302  | 0.0072405  |   0.0 | 86.99
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00048985 | 0.00050589 | 0.00052364 |   0.0 |  6.09
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.0005751  |            |       |  6.92
+
+Nlocal:            250 ave         250 max         250 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           2198 ave        2198 max        2198 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:          21250 ave       22375 max       20125 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+
+Total # of neighbors = 85000
+Ave neighs/atom = 85
+Neighbor list builds = 0
+Dangerous builds = 0
+velocity all create 300 56555 mom yes rot yes dist gaussian
+unfix 1
+fix 2 all npt temp 300 300 0.1 iso 1.0 1.0 1.0
+#fix 3 all nvt temp 300 300 0.1
+
+# Lattice constant
+#thermo_style custom step temp press lx
+#thermo 100
+#print "Initial lattice constant ${lx}"
+
+# DUMP
+dump 1 all custom 100 feal_50_50_b2.dump id type x y z
+
+# RUN
+run 10000
+Per MPI rank memory allocation (min/avg/max) = 3.425 | 3.425 | 3.425 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+        13   300           -3326.0591      0             -3287.3198     -7227.1563      15023.513    
+     10013   300.00147     -3779.2092      0             -3740.4697     -84.916163      12804.051    
+Loop time of 22.1822 on 4 procs for 10000 steps with 1000 atoms
+
+Performance: 38.950 ns/day, 0.616 hours/ns, 450.812 timesteps/s, 450.812 katom-step/s
+96.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 19.013     | 19.586     | 19.966     |   7.9 | 88.30
+Neigh   | 0.040635   | 0.041898   | 0.042919   |   0.4 |  0.19
+Comm    | 1.5833     | 1.9655     | 2.542      |  25.2 |  8.86
+Output  | 0.062241   | 0.068154   | 0.07351    |   1.6 |  0.31
+Modify  | 0.38446    | 0.39231    | 0.39841    |   0.8 |  1.77
+Other   |            | 0.128      |            |       |  0.58
+
+Nlocal:            250 ave         255 max         246 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
+Nghost:        2326.75 ave        2333 max        2317 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Neighs:        24663.5 ave       25846 max       23976 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 98654
+Ave neighs/atom = 98.654
+Neighbor list builds = 34
+Dangerous builds = 0
+
+#print "Eq. lattice constant ${lx}"
+
+# RDF
+#compute feal_rdf all rdf 200 1 1 1 2 2 2
+#fix 4 all ave/time 100 10 1000 c_feal_rdf file feal_50_50_b2.out mode vector
+
+print "All Done!"
+All Done!
+Total wall time: 0:00:22
