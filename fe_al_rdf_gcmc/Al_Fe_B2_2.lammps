@@ -1,0 +1,59 @@
+# LAMMPS for 50/50 Fe-Al B2
+
+# INITIAL
+clear
+units                   metal
+dimension               3
+boundary                p p p
+atom_style              atomic
+
+# VARIABLES
+variable a equal        6
+
+# BOX
+lattice                 sc ${a}
+region                  region_1 block 0 10 0 10 0 10 units lattice
+create_box              2 region_1
+
+# ATOMS
+create_atoms            1 region region_1
+lattice                 sc ${a} origin 0.5 0.5 0.5
+create_atoms            2 region region_1
+
+# DUMP
+dump                    1 all custom 100 feal_50_50_2.dump1 id type x y z
+
+# POTENTIAL
+pair_style              eam/fs
+pair_coeff              * * AlFe_mm.eam.fs Al Fe
+neighbor                2 bin
+neigh_modify            delay 10 check yes
+
+# Conditions
+fix                     1 all box/relax iso 0.0 vmax 0.01
+unfix                   1
+minimize                1.0e-4 1.0e-6 500 10000
+
+
+velocity                all create 300 56555 mom yes rot yes dist gaussian
+
+fix                     2 all npt temp 300 300 0.1 iso 1.0 1.0 1.0
+
+
+# Lattice constant
+thermo_style            custom step temp press lx
+thermo                  500
+#print                   "Initial lattice constant ${lx} "
+
+
+
+# RUN
+run                     20000
+
+# DUMP
+dump                    2 all custom 200 feal_50_50_22.dump2 id type x y z
+
+#print "Eq. lattice constant ${lx}"
+
+
+print "All Done!"
