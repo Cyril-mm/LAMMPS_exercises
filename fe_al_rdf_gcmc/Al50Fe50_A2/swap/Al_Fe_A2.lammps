@@ -1,0 +1,66 @@
+# LAMMPS for 50/50 Fe-Al A2 heatoms swap 
+
+# INITIAL
+clear
+units                   metal
+dimension               3
+boundary                p p p
+atom_style              atomic
+
+# VARIABLES
+variable a equal        6
+
+# BOX
+lattice                 bcc ${a}
+region                  region_1 block 0 10 0 10 0 10 units lattice
+create_box              2 region_1
+
+# ATOMS
+create_atoms            2 region region_1
+set                     type 2 type/fraction 1 0.5 3822
+
+# DUMP
+#dump                    dump0 all custom 100 Al50Fe50_A2_heat.d0 id type x y z
+#undump                  dump0
+
+# POTENTIAL
+pair_style              eam/fs
+pair_coeff              * * AlFe_mm.eam.fs Al Fe
+neighbor                2 bin
+neigh_modify            delay 5 check yes
+
+
+
+# INiTIALIZATION
+fix                     1 all box/relax iso 0.0 vmax 0.01
+displace_atoms          all random 0.01 0.01 0.01 1586 units box
+minimize                1.0e-12 1.0e-8 5000 10000
+unfix                   1
+
+velocity                all create 300 56555 mom yes rot yes dist gaussian
+
+#OUTPUT
+thermo_style            custom step temp press lx
+thermo                  5000
+
+dump                    evo1 all custom 5000 feal_B2_swap_evo.d id type x y z
+
+#HEATING + MC
+fix                     heat1 all npt temp 300 900 $(100.0*dt) iso 1.0 1.0 $(2000.0*dt)
+    fix                     swap1 all atom/swap 500 10 1524 900 types 1 2
+        run                     1000000
+    unfix                   swap1
+
+    run                 50000
+unfix                   heat1
+
+
+#COOLING
+fix                     cool1 all npt temp 900 300 $(100.0*dt) iso 1.0 1.0 $(2000.0*dt)
+run                     50000
+unfix                   cool1
+
+undump evo1
+
+
+print "All Done!"
